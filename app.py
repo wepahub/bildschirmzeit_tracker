@@ -27,7 +27,8 @@ def lade_klassen_daten():
         sheet = get_google_sheet()
         worksheet = sheet.worksheet("Klassen")
         return {str(row["Klassenname"]): str(row["PIN"]) for row in worksheet.get_all_records()}
-    except:
+    except Exception as e:
+        st.error(f"Hier ist der Fehler: {e}") # <-- Das zeigt uns jetzt den Fehler in roter Schrift an!
         return {}
 
 @st.cache_data(ttl=60)
