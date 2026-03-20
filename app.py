@@ -67,7 +67,6 @@ def lade_tracking_df(klasse):
         
         if not df.empty:
             df["Minuten"] = pd.to_numeric(df["Minuten"], errors='coerce').fillna(0)
-            # Bereitet das Datum für die Graphen vor
             df["Datum"] = pd.to_datetime(df["Datum"], errors='coerce').dt.date
         return df
     except:
@@ -99,7 +98,6 @@ def main_app():
     klasse = st.session_state["klasse"]
     st.title(f"Dashboard - Klasse {klasse}")
     
-    # Die neuen drei Reiter
     tab1, tab2, tab3 = st.tabs(["⏱️ Zeit eintragen", "📊 Auswertung & Graphen", "⚙️ Verwaltung"])
     
     with tab1:
@@ -125,18 +123,15 @@ def main_app():
         if df.empty:
             st.info("Es wurden noch keine Zeiten für diese Klasse eingetragen.")
         else:
-            # 1. Gesamtstunden der Klasse
             gesamt_minuten = df["Minuten"].sum()
             gesamt_stunden = round(gesamt_minuten / 60, 1)
             st.metric("Gesamte Bildschirmzeit der Klasse", f"{gesamt_stunden} Stunden")
             
-            # 2. Graph: Gesamtverlauf der Klasse
             st.markdown("#### Verlauf der gesamten Klasse")
             df_klasse_tag = df.groupby("Datum")["Minuten"].sum().reset_index()
             df_klasse_tag.set_index("Datum", inplace=True)
             st.line_chart(df_klasse_tag)
             
-            # 3. Graph: Individueller Verlauf
             st.markdown("#### Verlauf pro Person")
             schueler_auswahl = st.selectbox("Person auswählen", df["Name"].unique())
             df_person = df[df["Name"] == schueler_auswahl]
@@ -144,7 +139,6 @@ def main_app():
             df_person_tag.set_index("Datum", inplace=True)
             st.bar_chart(df_person_tag)
             
-            # 4. Übersichtstabelle aller Zeiten
             st.markdown("#### Gesamtübersicht")
             df_ranking = df.groupby("Name")["Minuten"].sum().reset_index()
             df_ranking["Stunden"] = round(df_ranking["Minuten"] / 60, 1)
@@ -165,83 +159,6 @@ def main_app():
                     st.success(f"{neuer_name} wurde zur Klasse {klasse} hinzugefügt!")
                     
     st.divider()
-    if st.button("Abmelden"):
-        st.session_state["logged_in"] = False
-        st.session_state["klasse"] = ""
-        st.rerun()
-
-# --- STEUERUNG ---
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-
-if not st.session_state["logged_in"]:
-    login()
-else:
-    main_app()    st.write("Bitte wähle die Klasse und gib den PIN ein.")
-    
-    klassen_daten = lade_klassen_daten()
-    
-    if not klassen_daten:
-        st.info("Verbindung zur Datenbank wird aufgebaut...")
-        return
-
-    klasse = st.selectbox("Klasse auswählen", list(klassen_daten.keys()))
-    pin_eingabe = st.text_input("Klassen-PIN", type="password")
-    
-    if st.button("Einloggen"):
-        if pin_eingabe == klassen_daten.get(klasse):
-            st.session_state["logged_in"] = True
-            st.session_state["klasse"] = klasse
-            st.rerun()
-        else:
-            st.error("Falscher PIN! Bitte versuche es noch einmal.")
-
-# --- HAUPT-APP (Nach dem Login) ---
-def main_app():
-    klasse = st.session_state["klasse"]
-    st.title(f"Dashboard - Klasse {klasse}")
-    
-    tab1, tab2 = st.tabs(["⏱️ Zeit eintragen", "🏆 Ranking ansehen"])
-    
-    with tab1:
-        st.subheader("Bildschirmzeit eintragen")
-        st.info("Das Formular für die Schüler:innen bauen wir im nächsten Schritt ein!")
-        
-    with tab2:
-        st.subheader("Aktuelles Ranking")
-        st.info("Hier erscheint bald die Auswertung für die Klasse.")
-        
-    if st.button("Abmelden"):
-        st.session_state["logged_in"] = False
-        st.session_state["klasse"] = ""
-        st.rerun()
-
-# --- STEUERUNG ---
-if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-
-if not st.session_state["logged_in"]:
-    login()
-else:
-    main_app()
-# --- HAUPT-APP (Nach dem Login) ---
-def main_app():
-    klasse = st.session_state["klasse"]
-    st.title(f"Dashboard - Klasse {klasse}")
-    
-    # Navigation über Tabs
-    tab1, tab2 = st.tabs(["⏱️ Zeit eintragen", "🏆 Ranking ansehen"])
-    
-    with tab1:
-        st.subheader("Deine Bildschirmzeit von heute")
-        # Hier kommt im nächsten Schritt das Eingabeformular mit Kalender hin
-        st.info("Das Eingabeformular wird im nächsten Schritt programmiert.")
-        
-    with tab2:
-        st.subheader("Aktuelles Ranking")
-        # Hier kommt später die Auswertung hin
-        st.info("Hier erscheint bald die Auswertung für alle Schüler:innen der Klasse.")
-        
     if st.button("Abmelden"):
         st.session_state["logged_in"] = False
         st.session_state["klasse"] = ""
